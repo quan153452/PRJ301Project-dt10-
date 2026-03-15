@@ -15,7 +15,48 @@ main → stable version
 dev → development version  
 feature/... → feature development
 
-Example branch:
-feature/login
-feature/student-management
-feature/teacher-management
+Git Workflow Guide
+
+To work effectively as a team, we follow a branching workflow.
+Branch Structure
+
+main → stable version of the project
+dev → development branch for the team
+feature/... → branch for developing a specific feature
+
+Example:
+
+main
+└── dev
+    ├── feature/login
+    ├── feature/student-management
+    └── feature/class-management
+
+Standard Working Process
+Step 1 – Pull latest code
+Before starting work, always update the project:
+
+  git checkout dev
+  git pull origin dev
+
+Step 2 – Create a feature branch
+Create a branch for your task:
+
+  git checkout -b feature/login
+
+Step 3 – Work and commit code
+After coding:
+
+  git add .
+  git commit -m "feat: add login function"
+
+Step 4 – Push branch to GitHub
+
+  git push origin feature/login
+
+Step 5 – Create Pull Request
+Go to the repository on GitHub
+Click Pull Requests
+Click New Pull Request
+Merge feature/... → dev
+After the feature is tested and stable, it will later be merged into main.
