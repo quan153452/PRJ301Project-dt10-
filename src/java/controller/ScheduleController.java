@@ -4,8 +4,7 @@
  */
 package controller;
 
-import dao.AccountDAO;
-import dao.StudentDAO;
+import dao.ScheduleDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,13 +12,15 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.Account;
+import java.util.List;
+import model.Schedule;
+import model.Student;
 
 /**
  *
- * @author Admin
+ * @author deadg
  */
-public class LoginController extends HttpServlet {
+public class ScheduleController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,10 +39,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet LoginController</title>");
+            out.println("<title>Servlet ScheduleController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet LoginController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet ScheduleController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -57,15 +58,22 @@ public class LoginController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        HttpSession session = request.getSession();
+        Student s = (Student) session.getAttribute("student");
 
-        HttpSession session = request.getSession(false);
-
-        if (session != null && session.getAttribute("user") != null) {
-            response.sendRedirect("dashboard");
+        if (s != null) {
+            ScheduleDAO dao = new ScheduleDAO();
+            // Use the maHS from your Student model
+            List<Schedule> list = dao.getScheduleByStudentId(s.getMaHS());
+            
+            request.setAttribute("scheduleList", list);
+            request.getRequestDispatcher("schedule.jsp").forward(request, response);
         } else {
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            // If student info isn't found, go back home or login
+            response.sendRedirect("login.jsp");
         }
     }
 
@@ -80,31 +88,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        String role = request.getParameter("role");
-
-        AccountDAO dao = new AccountDAO();
-        Account user = dao.login(username, password);
-
-        if (user != null && role.equals(user.getRole())) {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            session.setMaxInactiveInterval(300);
-
-            // If the user is a student, get their student profile
-            if (user.getRole().equals("student")) {
-                StudentDAO sDao = new StudentDAO();
-                model.Student student = sDao.getStudentByAccountId(user.getAccountID());
-                session.setAttribute("student", student); // KEY: Save student object here
-            }
-
-            response.sendRedirect("Home");
-        } else {
-            request.setAttribute("error", "Invalid login");
-            request.getRequestDispatcher("index.jsp").forward(request, response);
-        }
+        doGet(request, response);
     }
 
     /**

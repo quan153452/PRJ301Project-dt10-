@@ -1,11 +1,21 @@
-<h2>Student Dashboard</h2>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Student Dashboard</title>
+</head>
+<body>
+    <header>
+        <h1>Student Portal</h1>
+        <p>Welcome, <strong>${student.hoTen}</strong> (ID: ${student.maHS})</p>
+    </header>
 
-<a href="ScheduleController">View Schedule</a>
+    <hr>
 
-<br><br>
-
-<a href="PaymentController">Pay Tuition</a>
-
-<br><br>
-
-<a href="Logout">Logout</a>
+    <nav>
+        <a href="ScheduleController">View Schedule</a><br><br>
+        <a href="PaymentController">Pay Tuition</a><br><br>
+        <a href="Logout">Logout</a>
+    </nav>
+</body>
+</html>

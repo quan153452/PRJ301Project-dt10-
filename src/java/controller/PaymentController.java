@@ -4,22 +4,23 @@
  */
 package controller;
 
-import dao.AccountDAO;
-import dao.StudentDAO;
-import java.io.IOException;
-import java.io.PrintWriter;
+import dao.PaymentDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.Account;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+import model.Payment;
+import model.Student;
 
 /**
  *
- * @author Admin
+ * @author deadg
  */
-public class LoginController extends HttpServlet {
+public class PaymentController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,10 +39,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet LoginController</title>");
+            out.println("<title>Servlet PaymentController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet LoginController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet PaymentController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -59,13 +60,16 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Student s = (Student) session.getAttribute("student");
 
-        HttpSession session = request.getSession(false);
-
-        if (session != null && session.getAttribute("user") != null) {
-            response.sendRedirect("dashboard");
+        if (s != null) {
+            PaymentDAO dao = new PaymentDAO();
+            List<Payment> list = dao.getPaymentsByStudentId(s.getMaHS());
+            request.setAttribute("paymentList", list);
+            request.getRequestDispatcher("payment.jsp").forward(request, response);
         } else {
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            response.sendRedirect("login.jsp");
         }
     }
 
@@ -80,31 +84,14 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        int paymentID = Integer.parseInt(request.getParameter("paymentID"));
+        PaymentDAO dao = new PaymentDAO();
 
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        String role = request.getParameter("role");
+        // In a real app, you'd integrate a payment gateway here. 
+        // For now, we just update the DB status.
+        dao.updatePaymentStatus(paymentID);
 
-        AccountDAO dao = new AccountDAO();
-        Account user = dao.login(username, password);
-
-        if (user != null && role.equals(user.getRole())) {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            session.setMaxInactiveInterval(300);
-
-            // If the user is a student, get their student profile
-            if (user.getRole().equals("student")) {
-                StudentDAO sDao = new StudentDAO();
-                model.Student student = sDao.getStudentByAccountId(user.getAccountID());
-                session.setAttribute("student", student); // KEY: Save student object here
-            }
-
-            response.sendRedirect("Home");
-        } else {
-            request.setAttribute("error", "Invalid login");
-            request.getRequestDispatcher("index.jsp").forward(request, response);
-        }
+        response.sendRedirect("PaymentController");
     }
 
     /**

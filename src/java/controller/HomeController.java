@@ -59,18 +59,25 @@ public class HomeController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         Account user = (Account) session.getAttribute("user");
+
         if (user == null) {
             response.sendRedirect("login.jsp");
             return;
         }
-        String role = user.getRole();
 
-        if (role.equals("student")) {
-            request.getRequestDispatcher("studentHome.jsp").forward(request, response);
-        } else if (role.equals("teacher")) {
-            request.getRequestDispatcher("teacherHome.jsp").forward(request, response);
-        } else if (role.equals("admin")) {
-            request.getRequestDispatcher("adminHome.jsp").forward(request, response);
+        // Redirect to the specific role-based controller
+        switch (user.getRole()) {
+            case "student":
+                response.sendRedirect("Student"); // Points to StudentController
+                break;
+            case "teacher":
+                response.sendRedirect("Teacher"); // Points to TeacherController
+                break;
+            case "admin":
+                response.sendRedirect("Admin");   // Points to AdminController
+                break;
+            default:
+                response.sendRedirect("login.jsp");
         }
     }
 
