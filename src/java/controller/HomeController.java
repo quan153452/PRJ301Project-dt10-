@@ -4,8 +4,6 @@
  */
 package controller;
 
-import dao.AccountDAO;
-import jakarta.servlet.RequestDispatcher;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -19,7 +17,7 @@ import model.Account;
  *
  * @author Admin
  */
-public class LoginController extends HttpServlet {
+public class HomeController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,10 +36,10 @@ public class LoginController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet LoginController</title>");
+            out.println("<title>Servlet HomeController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet LoginController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet HomeController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -59,18 +57,23 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Account user = (Account) session.getAttribute("user");
+        if (user == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+        String role = user.getRole();
 
-        HttpSession session = request.getSession(false);
-
-        if (session != null && session.getAttribute("user") != null) {
-            response.sendRedirect("dashboard");
-        } else {
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+        if (role.equals("student")) {
+            request.getRequestDispatcher("studentHome.jsp").forward(request, response);
+        } else if (role.equals("teacher")) {
+            request.getRequestDispatcher("teacherHome.jsp").forward(request, response);
+        } else if (role.equals("admin")) {
+            request.getRequestDispatcher("adminHome.jsp").forward(request, response);
         }
     }
 
-    
-    
     /**
      * Handles the HTTP <code>POST</code> method.
      *
@@ -82,29 +85,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        String role = request.getParameter("role");
-
-        AccountDAO dao = new AccountDAO();
-        Account user = dao.login(username, password);
-
-        if (user != null && role.equals(user.getRole())) {
-
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-
-            session.setMaxInactiveInterval(300); // 5 minutes
-
-            response.sendRedirect("Home");
-
-        } else {
-
-            request.setAttribute("error", "Invalid login");
-            request.getRequestDispatcher("index.jsp").forward(request, response);
-
-        }
+        processRequest(request, response);
     }
 
     /**
