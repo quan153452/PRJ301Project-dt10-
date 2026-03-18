@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/web/index.html</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/model/User.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/controller/TimetableController.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/web/WEB-INF/ConnectDB.properties</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/web/student/dashboard.jsp</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/web/WEB-INF/web.xml</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/controller/StudentDashboardController.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/model/ScheduleDetail.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/dal/DBContext.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/dal/StudentDAO.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/dal/UserDAO.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/filter/AuthorizationFilter.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/web/login.jsp</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/controller/LoginController.java</file>
+            <file>file:/D:/học%20hành/prjcode/EnglishCenter/src/java/model/EnrolledClass.java</file>
+        </group>
+    </open-files>
+</project-private>
