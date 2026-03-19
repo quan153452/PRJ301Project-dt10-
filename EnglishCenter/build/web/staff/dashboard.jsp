@@ -62,6 +62,9 @@
                             <li style="margin-bottom: 10px;">
                                 <a href="TeacherManage" style="font-weight: bold;">3. Quản lý Danh sách Giáo viên</a>
                             </li>
+                            <li style="margin-bottom: 10px;">
+                                <a href="FeedbackManage" style="color: #cc0000; font-weight: bold;">4. Hòm thư Đánh giá (Feedback)</a>
+                            </li>
                         </ul>
                     </div>
                 </td>
