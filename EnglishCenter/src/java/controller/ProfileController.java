@@ -4,8 +4,7 @@
  */
 package controller;
 
-import dal.AdminDAO;
-import dal.StaffDAO;
+import dal.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -19,7 +18,7 @@ import model.User;
  *
  * @author deadg
  */
-public class AccountManageController extends HttpServlet {
+public class ProfileController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,10 +37,10 @@ public class AccountManageController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet AccountManageController</title>");
+            out.println("<title>Servlet ProfileController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet AccountManageController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet ProfileController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -62,15 +61,16 @@ public class AccountManageController extends HttpServlet {
 
         HttpSession session = request.getSession();
         User loginUser = (User) session.getAttribute("LOGIN_USER");
-        if (loginUser == null || loginUser.getRoleID() != 1) { // Chỉ Admin
+
+        // Bất kỳ ai chưa đăng nhập đều bị đá ra ngoài
+        if (loginUser == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
-        AdminDAO dao = new AdminDAO();
-        request.setAttribute("accountList", dao.getStaffAndAdminAccounts());
-
-        request.getRequestDispatcher("/admin/accountManage.jsp").forward(request, response);
+        // Vì thông tin cá nhân đã lưu sẵn trong Session lúc Login rồi, 
+        // nên ta không cần gọi DAO để lấy nữa, cứ thế forward thẳng sang JSP.
+        request.getRequestDispatcher("/profile.jsp").forward(request, response);
     }
 
     /**
@@ -86,46 +86,25 @@ public class AccountManageController extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-        String action = request.getParameter("action");
+        HttpSession session = request.getSession();
+        User loginUser = (User) session.getAttribute("LOGIN_USER");
 
-        AdminDAO adminDao = new AdminDAO();
-        StaffDAO staffDao = new StaffDAO(); // Mượn DAO của Staff để dùng hàm Check trùng và Deactivate
+        String oldPassword = request.getParameter("oldPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
 
-        // NẾU LÀ HÀNH ĐỘNG XÓA (KHÓA)
-        if ("delete".equals(action)) {
-            int userId = Integer.parseInt(request.getParameter("userId"));
-            if (staffDao.deactivateUser(userId)) {
-                request.setAttribute("msg", "Đã KHÓA tài khoản nhân sự thành công!");
-            } else {
-                request.setAttribute("error", "Lỗi: Không thể khóa tài khoản này.");
-            }
-        } // NẾU LÀ HÀNH ĐỘNG MỞ KHÓA (MỚI THÊM)
-        else if ("activate".equals(action)) {
-            int userId = Integer.parseInt(request.getParameter("userId"));
-            if (staffDao.activateUser(userId)) {
-                request.setAttribute("msg", "Đã MỞ KHÓA tài khoản thành công!");
-            } else {
-                request.setAttribute("error", "Lỗi: Không thể mở khóa tài khoản này.");
-            }
-        }// NẾU LÀ HÀNH ĐỘNG THÊM MỚI
-        else {
-            String username = request.getParameter("username");
-            String fullName = request.getParameter("fullName");
-            String email = request.getParameter("email");
-            String phone = request.getParameter("phone");
-            String address = request.getParameter("address");
-            int roleId = Integer.parseInt(request.getParameter("roleId"));
-            String password = "123";
+        if (!newPassword.equals(confirmPassword)) {
+            request.setAttribute("error", "Lỗi: Mật khẩu xác nhận không trùng khớp với mật khẩu mới!");
+        } else {
+            UserDAO dao = new UserDAO();
+            if (dao.changePassword(loginUser.getUserID(), oldPassword, newPassword)) {
+                request.setAttribute("msg", "Đổi mật khẩu thành công!");
 
-            if (staffDao.checkUserExists(username, email)) {
-                request.setAttribute("error", "Lỗi: Tên đăng nhập hoặc Email này đã tồn tại trong hệ thống!");
+                // Cập nhật lại mật khẩu trong Session để đồng bộ
+                loginUser.setPassword(newPassword);
+                session.setAttribute("LOGIN_USER", loginUser);
             } else {
-                boolean success = adminDao.insertStaffAdminAccount(username, password, fullName, email, phone, address, roleId);
-                if (success) {
-                    request.setAttribute("msg", "Tạo tài khoản quản trị thành công! Mật khẩu mặc định: 123");
-                } else {
-                    request.setAttribute("error", "Lỗi: Không thể tạo tài khoản lúc này.");
-                }
+                request.setAttribute("error", "Lỗi: Mật khẩu cũ không chính xác!");
             }
         }
 

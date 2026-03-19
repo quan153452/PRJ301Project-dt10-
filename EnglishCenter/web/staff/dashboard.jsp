@@ -14,8 +14,12 @@
     </head>
     <body>
         <h2>Khu vực Nhân Viên / Giáo Vụ</h2>
-        <p>Xin chào, <strong>${LOGIN_USER.fullName}</strong></p>
-
+        <p>Xin chào, 
+            <a href="Profile" style="text-decoration: none; color: #2986cc;">
+                <strong>${sessionScope.LOGIN_USER.fullName}</strong>
+            </a>
+            (Click vào tên để xem Hồ sơ)
+        </p> 
         <a href="Logout" style="margin-right: 20px;">Đăng xuất</a>
 
         <c:if test="${LOGIN_USER.roleID == 1}">

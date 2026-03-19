@@ -196,4 +196,42 @@ public class TeacherDAO extends DBContext {
             java.util.logging.Logger.getLogger(TeacherDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
     }
+
+    // Lấy danh sách tài liệu giáo viên này đã đăng
+    public java.util.List<model.Material> getMaterialsByTeacher(int teacherId) {
+        java.util.List<model.Material> list = new java.util.ArrayList<>();
+        // Ta mượn luôn Model Material cũ, dù không có thuộc tính ClassName nhưng ta hiện Title và URL là đủ hiểu
+        String sql = "SELECT m.MaterialID, m.Title, m.FileUrl "
+                + "FROM Materials m "
+                + "JOIN Classes c ON m.ClassID = c.ClassID "
+                + "WHERE c.TeacherID = ? ORDER BY m.MaterialID DESC";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, teacherId);
+            java.sql.ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new model.Material(
+                        rs.getInt("MaterialID"),
+                        rs.getString("Title"),
+                        rs.getString("FileUrl")
+                ));
+            }
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(TeacherDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    // Xóa tài liệu
+    public boolean deleteMaterial(int materialId) {
+        String sql = "DELETE FROM Materials WHERE MaterialID = ?";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, materialId);
+            return ps.executeUpdate() > 0;
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(TeacherDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return false;
+    }
 }

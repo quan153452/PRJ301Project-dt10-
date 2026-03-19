@@ -85,25 +85,37 @@ public class TeacherManageController extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-
-        String username = request.getParameter("username");
-        String fullName = request.getParameter("fullName");
-        String email = request.getParameter("email");
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-        String password = "123"; // Pass mặc định
-
         StaffDAO dao = new StaffDAO();
 
-        // Tận dụng lại hàm checkUserExists đã viết ở bài trước
-        if (dao.checkUserExists(username, email)) {
-            request.setAttribute("error", "Lỗi: Tên đăng nhập hoặc Email này đã được sử dụng!");
-        } else {
-            boolean success = dao.insertTeacher(username, password, fullName, email, phone, address);
-            if (success) {
-                request.setAttribute("msg", "Tạo tài khoản Giảng viên mới thành công! Mật khẩu mặc định: 123");
+        // Lấy hành động từ form
+        String action = request.getParameter("action");
+
+        // NẾU LÀ HÀNH ĐỘNG XÓA (ĐÌNH CHỈ)
+        if ("delete".equals(action)) {
+            int userId = Integer.parseInt(request.getParameter("userId"));
+            if (dao.deactivateUser(userId)) {
+                request.setAttribute("msg", "Đã đình chỉ tài khoản Giảng viên thành công!");
             } else {
-                request.setAttribute("error", "Đã có lỗi xảy ra khi lưu vào Database.");
+                request.setAttribute("error", "Lỗi: Không thể đình chỉ tài khoản này.");
+            }
+        } // NẾU LÀ HÀNH ĐỘNG THÊM MỚI (Logic cũ)
+        else {
+            String username = request.getParameter("username");
+            String fullName = request.getParameter("fullName");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            String password = "123";
+
+            if (dao.checkUserExists(username, email)) {
+                request.setAttribute("error", "Lỗi: Tên đăng nhập hoặc Email này đã được sử dụng!");
+            } else {
+                boolean success = dao.insertTeacher(username, password, fullName, email, phone, address);
+                if (success) {
+                    request.setAttribute("msg", "Tạo tài khoản Giảng viên mới thành công! Mật khẩu mặc định: 123");
+                } else {
+                    request.setAttribute("error", "Đã có lỗi xảy ra khi lưu vào Database.");
+                }
             }
         }
 

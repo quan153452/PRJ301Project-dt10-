@@ -28,6 +28,7 @@
         <div style="border: 1px solid #38761d; padding: 20px; width: 60%; margin-bottom: 30px; background-color: #f9f9f9;">
             <h3 style="color: #38761d; margin-top: 0;">Tuyển dụng / Thêm hồ sơ Giảng viên mới</h3>
             <form action="TeacherManage" method="POST">
+                <input type="hidden" name="action" value="add">
                 <table style="width: 100%;">
                     <tr>
                         <td style="width: 30%;"><strong>Username:</strong></td>
@@ -68,26 +69,32 @@
                 <th>Họ và Tên</th>
                 <th>Email</th>
                 <th>Số Điện Thoại</th>
-                <th>Địa Chỉ</th>
                 <th>Trạng Thái</th>
-            </tr>
-            <c:forEach items="${teacherList}" var="t">
+                <th style="text-align: center;">Thao tác</th> </tr>
+                    <c:forEach items="${teacherList}" var="t">
                 <tr>
                     <td>${t.userID}</td>
                     <td>${t.username}</td>
                     <td><strong>${t.fullName}</strong></td>
                     <td>${t.email}</td>
                     <td>${t.phone}</td>
-                    <td>${t.address}</td>
                     <td style="font-weight: bold;">
                         <c:choose>
-                            <c:when test="${t.status == 1}">
-                                <span style="color: green;">Đang công tác</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span style="color: red;">Đã nghỉ việc</span>
-                            </c:otherwise>
+                            <c:when test="${t.status == 1}"><span style="color: green;">Đang công tác</span></c:when>
+                            <c:otherwise><span style="color: red;">Đã nghỉ việc</span></c:otherwise>
                         </c:choose>
+                    </td>
+                    <td style="text-align: center;">
+                        <c:if test="${t.status == 1}">
+                            <form action="${pageContext.request.contextPath}/TeacherManage" method="POST" style="margin: 0;">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="userId" value="${t.userID}">
+                                <button type="submit" onclick="return confirm('Xác nhận ĐÌNH CHỈ / XÓA tài khoản giảng viên này?');" 
+                                        style="background-color: #cc0000; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px;">
+                                    Nghỉ việc
+                                </button>
+                            </form>
+                        </c:if>
                     </td>
                 </tr>
             </c:forEach>

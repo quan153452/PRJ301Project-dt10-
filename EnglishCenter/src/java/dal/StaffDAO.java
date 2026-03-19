@@ -363,4 +363,155 @@ public class StaffDAO extends DBContext {
         }
         return list;
     }
+
+    // Kiểm tra xem có bị trùng lịch Phòng hoặc lịch Lớp không
+    public String checkSlotConflict(int classId, int roomId, java.sql.Date slotDate, String slotTime) {
+        try {
+            // 1. Kiểm tra xem Phòng học này đã bị lớp khác chiếm dụng chưa
+            String sqlRoom = "SELECT SlotID FROM Timetable WHERE RoomID = ? AND SlotDate = ? AND SlotTime = ?";
+            java.sql.PreparedStatement psRoom = connection.prepareStatement(sqlRoom);
+            psRoom.setInt(1, roomId);
+            psRoom.setDate(2, slotDate);
+            psRoom.setString(3, slotTime);
+            java.sql.ResultSet rsRoom = psRoom.executeQuery();
+            if (rsRoom.next()) {
+                return "Phòng học này đã được xếp cho một lớp khác vào thời gian này!";
+            }
+
+            // 2. Kiểm tra xem Lớp học này đã có lịch ở ca này chưa (tránh 1 lớp học 2 môn cùng lúc)
+            String sqlClass = "SELECT SlotID FROM Timetable WHERE ClassID = ? AND SlotDate = ? AND SlotTime = ?";
+            java.sql.PreparedStatement psClass = connection.prepareStatement(sqlClass);
+            psClass.setInt(1, classId);
+            psClass.setDate(2, slotDate);
+            psClass.setString(3, slotTime);
+            java.sql.ResultSet rsClass = psClass.executeQuery();
+            if (rsClass.next()) {
+                return "Lớp học này đã có lịch học vào ca này rồi!";
+            }
+
+            // Mở rộng thêm: Nếu bạn muốn check cả Giảng viên bị trùng lịch thì có thể JOIN với bảng Classes ở đây
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+
+        // Nếu an toàn đi qua hết các vòng check, trả về null (Không có lỗi trùng lặp)
+        return null;
+    }
+
+    // 1. XÓA CỨNG (Hard Delete) cho Buổi học
+    public boolean deleteTimetableSlot(int slotId) {
+        try {
+            // Bước 1: Xóa các bản ghi điểm danh (Attendance) liên quan đến Slot này trước
+            String sqlAtt = "DELETE FROM Attendance WHERE SlotID = ?";
+            java.sql.PreparedStatement psAtt = connection.prepareStatement(sqlAtt);
+            psAtt.setInt(1, slotId);
+            psAtt.executeUpdate();
+
+            // Bước 2: Xóa buổi học trong Timetable
+            String sqlSlot = "DELETE FROM Timetable WHERE SlotID = ?";
+            java.sql.PreparedStatement psSlot = connection.prepareStatement(sqlSlot);
+            psSlot.setInt(1, slotId);
+            return psSlot.executeUpdate() > 0;
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // 2. XÓA MỀM (Soft Delete) cho User (Giáo viên / Học sinh / Staff)
+    public boolean deactivateUser(int userId) {
+        // Chuyển Status về 0 thay vì xóa data để giữ lại lịch sử đóng học phí/điểm danh
+        String sql = "UPDATE Users SET Status = 0 WHERE UserID = ?";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, userId);
+            return ps.executeUpdate() > 0;
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // MỞ KHÓA (Reactivate) cho User
+    public boolean activateUser(int userId) {
+        // Chuyển Status từ 0 (Khóa) về lại 1 (Hoạt động)
+        String sql = "UPDATE Users SET Status = 1 WHERE UserID = ?";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, userId);
+            return ps.executeUpdate() > 0;
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+// Hủy xếp lớp (Unenroll) an toàn - Chỉ cần truyền EnrollID
+    public boolean unenrollStudent(int enrollId) {
+        try {
+            // Bước 1: Tìm StudentID và ClassID dựa vào EnrollID
+            int studentId = 0;
+            int classId = 0;
+            String sqlFind = "SELECT StudentID, ClassID FROM Enrollments WHERE EnrollID = ?";
+            java.sql.PreparedStatement psFind = connection.prepareStatement(sqlFind);
+            psFind.setInt(1, enrollId);
+            java.sql.ResultSet rs = psFind.executeQuery();
+
+            if (rs.next()) {
+                studentId = rs.getInt("StudentID");
+                classId = rs.getInt("ClassID");
+            } else {
+                return false; // Không tìm thấy bản ghi xếp lớp này
+            }
+
+            // Bước 2: Xóa toàn bộ điểm danh (Attendance) của học sinh này trong lớp này
+            String delAtt = "DELETE FROM Attendance WHERE StudentID = ? AND SlotID IN (SELECT SlotID FROM Timetable WHERE ClassID = ?)";
+            java.sql.PreparedStatement psAtt = connection.prepareStatement(delAtt);
+            psAtt.setInt(1, studentId);
+            psAtt.setInt(2, classId);
+            psAtt.executeUpdate();
+
+            // Bước 3: Xóa Feedbacks (nếu có)
+            String delFb = "DELETE FROM Feedbacks WHERE StudentID = ? AND ClassID = ?";
+            java.sql.PreparedStatement psFb = connection.prepareStatement(delFb);
+            psFb.setInt(1, studentId);
+            psFb.setInt(2, classId);
+            psFb.executeUpdate();
+
+            // Bước 4: Chốt hạ - Xóa bản ghi Enrollment
+            String delEnroll = "DELETE FROM Enrollments WHERE EnrollID = ?";
+            java.sql.PreparedStatement psEnroll = connection.prepareStatement(delEnroll);
+            psEnroll.setInt(1, enrollId);
+            return psEnroll.executeUpdate() > 0;
+
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    //  Lấy danh sách Học viên để quản lý
+    public java.util.List<model.User> getStudentDetails() {
+        java.util.List<model.User> list = new java.util.ArrayList<>();
+        String sql = "SELECT UserID, Username, FullName, Email, Phone, Address, Status "
+                + "FROM Users WHERE RoleID = 4 ORDER BY UserID DESC";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            java.sql.ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                model.User u = new model.User();
+                u.setUserID(rs.getInt("UserID"));
+                u.setUsername(rs.getString("Username"));
+                u.setFullName(rs.getString("FullName"));
+                u.setEmail(rs.getString("Email"));
+                u.setPhone(rs.getString("Phone"));
+                u.setAddress(rs.getString("Address"));
+                u.setStatus(rs.getInt("Status")); // 1: Đang học, 0: Đã nghỉ
+                list.add(u);
+            }
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return list;
+    }
 }

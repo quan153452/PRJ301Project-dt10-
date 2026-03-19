@@ -24,6 +24,7 @@
         </c:if>
 
         <form action="${pageContext.request.contextPath}/UploadMaterial" method="POST">
+            <input type="hidden" name="action" value="add">
             <p>
                 <label>Chọn Lớp Học:</label><br>
                 <select name="classId" required style="width: 300px; padding: 5px;">
@@ -46,6 +47,29 @@
 
             <button type="submit" style="padding: 8px 15px; background-color: #2986cc; color: white; border: none; cursor: pointer;">TẢI LÊN TÀI LIỆU</button>
         </form>
-
+        <h3 style="margin-top: 30px;">Tài liệu bạn đã tải lên</h3>
+        <table border="1" cellpadding="8" cellspacing="0" style="width: 80%; text-align: left;">
+            <tr style="background-color: #2986cc; color: white;">
+                <th>Tên tài liệu (Title)</th>
+                <th>Đường dẫn File</th>
+                <th style="text-align: center;">Thao tác</th>
+            </tr>
+            <c:forEach items="${materialList}" var="m">
+                <tr>
+                    <td><strong>${m.title}</strong></td>
+                    <td><a href="${m.fileUrl}" target="_blank">Xem File</a></td>
+                    <td style="text-align: center;">
+                        <form action="${pageContext.request.contextPath}/UploadMaterial" method="POST" style="margin: 0;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="materialId" value="${m.materialID}">
+                            <button type="submit" onclick="return confirm('Bạn có chắc chắn muốn XÓA tài liệu này?');" 
+                                    style="background-color: #cc0000; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px;">
+                                Xóa
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </c:forEach>
+        </table>
     </body>
 </html>

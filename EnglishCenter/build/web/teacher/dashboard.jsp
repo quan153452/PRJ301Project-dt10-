@@ -15,8 +15,12 @@
 
         <div>
             <h2>Khu vực Giảng Viên</h2>
-            <p>Xin chào, <strong>${LOGIN_USER.fullName}</strong></p>
-            <a href="Logout">Đăng xuất</a>
+            <p>Xin chào, 
+                <a href="Profile" style="text-decoration: none; color: #2986cc;">
+                    <strong>${sessionScope.LOGIN_USER.fullName}</strong>
+                </a>
+                (Click vào tên để xem Hồ sơ)
+            </p>             <a href="Logout">Đăng xuất</a>
         </div>
 
         <hr>

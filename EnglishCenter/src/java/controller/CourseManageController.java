@@ -114,7 +114,18 @@ public class CourseManageController extends HttpServlet {
                 } else {
                     request.setAttribute("error", "Lỗi: Cập nhật thất bại.");
                 }
+            } else if ("delete".equals(action)) {
+                // Hành động XÓA mới thêm vào
+                int courseId = Integer.parseInt(request.getParameter("courseId"));
+                String error = dao.deleteCourseSafe(courseId);
+
+                if (error != null) {
+                    request.setAttribute("error", error); // Hiện cảnh báo không cho xóa
+                } else {
+                    request.setAttribute("msg", "Đã XÓA khóa học thành công!");
+                }
             }
+
         } catch (Exception e) {
             request.setAttribute("error", "Lỗi định dạng dữ liệu đầu vào!");
         }
