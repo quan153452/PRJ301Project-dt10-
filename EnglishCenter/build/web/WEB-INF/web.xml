@@ -96,6 +96,10 @@
         <servlet-name>AccountManageController</servlet-name>
         <servlet-class>controller.AccountManageController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ProfileController</servlet-name>
+        <servlet-class>controller.ProfileController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>LoginController</servlet-name>
         <url-pattern>/Login</url-pattern>
@@ -183,6 +187,10 @@
     <servlet-mapping>
         <servlet-name>AccountManageController</servlet-name>
         <url-pattern>/AccountManage</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ProfileController</servlet-name>
+        <url-pattern>/Profile</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>login.jsp</welcome-file>

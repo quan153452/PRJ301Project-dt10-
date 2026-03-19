@@ -89,22 +89,43 @@ public class TimetableManageController extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-
-        int classId = Integer.parseInt(request.getParameter("classId"));
-        int roomId = Integer.parseInt(request.getParameter("roomId"));
-        Date slotDate = Date.valueOf(request.getParameter("slotDate"));
-        String slotTime = request.getParameter("slotTime");
-        String topic = request.getParameter("topic");
-
         StaffDAO dao = new StaffDAO();
-        boolean success = dao.insertTimetableSlot(classId, roomId, slotDate, slotTime, topic);
 
-        if (success) {
-            request.setAttribute("msg", "Đã xếp lịch (Tạo Slot) thành công!");
-        } else {
-            request.setAttribute("error", "Lỗi: Không thể xếp lịch học.");
+        // Nhận diện hành động (Thêm mới hay Xóa)
+        String action = request.getParameter("action");
+
+        // NẾU LÀ HÀNH ĐỘNG XÓA
+        if ("delete".equals(action)) {
+            int slotId = Integer.parseInt(request.getParameter("slotId"));
+            if (dao.deleteTimetableSlot(slotId)) {
+                request.setAttribute("msg", "Đã XÓA buổi học thành công!");
+            } else {
+                request.setAttribute("error", "Lỗi: Không thể xóa buổi học này.");
+            }
+        } // NẾU LÀ HÀNH ĐỘNG THÊM MỚI (Logic cũ của bạn)
+        else {
+            int classId = Integer.parseInt(request.getParameter("classId"));
+            int roomId = Integer.parseInt(request.getParameter("roomId"));
+            java.sql.Date slotDate = java.sql.Date.valueOf(request.getParameter("slotDate"));
+            String slotTime = request.getParameter("slotTime");
+            String topic = request.getParameter("topic");
+
+            // Kiểm tra trùng lịch
+            String conflictError = dao.checkSlotConflict(classId, roomId, slotDate, slotTime);
+
+            if (conflictError != null) {
+                request.setAttribute("error", "Lỗi xếp lịch: " + conflictError);
+            } else {
+                boolean success = dao.insertTimetableSlot(classId, roomId, slotDate, slotTime, topic);
+                if (success) {
+                    request.setAttribute("msg", "Đã xếp lịch (Tạo Slot) thành công!");
+                } else {
+                    request.setAttribute("error", "Lỗi hệ thống: Không thể xếp lịch học.");
+                }
+            }
         }
 
+        // Gọi lại doGet để load lại bảng danh sách
         doGet(request, response);
     }
 

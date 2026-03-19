@@ -86,24 +86,37 @@ public class EnrollController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String studentIdStr = request.getParameter("studentId");
-        String classIdStr = request.getParameter("classId");
+        request.setCharacterEncoding("UTF-8");
+        String action = request.getParameter("action");
+        StaffDAO dao = new StaffDAO();
 
-        if (studentIdStr != null && classIdStr != null) {
-            int studentId = Integer.parseInt(studentIdStr);
-            int classId = Integer.parseInt(classIdStr);
+        if ("unenroll".equals(action)) {
+            // Chỉ bắt đúng một tham số duy nhất có thật từ JSP
+            int enrollId = Integer.parseInt(request.getParameter("enrollId"));
 
-            StaffDAO dao = new StaffDAO();
-            boolean success = dao.insertEnrollment(studentId, classId);
-
-            if (success) {
-                request.setAttribute("msg", "Đã xếp học viên vào lớp thành công! Trạng thái học phí: Chưa nộp.");
+            // Gọi hàm DAO mới đã được tối ưu
+            if (dao.unenrollStudent(enrollId)) {
+                request.setAttribute("msg", "Đã hủy xếp lớp thành công!");
             } else {
-                request.setAttribute("error", "Thất bại! Có thể học viên này đã có tên trong lớp học rồi.");
+                request.setAttribute("error", "Lỗi: Không thể hủy xếp lớp.");
+            }
+        } else {
+            // Logic Enroll cũ (Thêm mới)
+            String studentIdStr = request.getParameter("studentId");
+            String classIdStr = request.getParameter("classId");
+
+            if (studentIdStr != null && classIdStr != null) {
+                int studentId = Integer.parseInt(studentIdStr);
+                int classId = Integer.parseInt(classIdStr);
+
+                if (dao.insertEnrollment(studentId, classId)) {
+                    request.setAttribute("msg", "Đã xếp học viên vào lớp thành công!");
+                } else {
+                    request.setAttribute("error", "Thất bại! Học viên này đã có trong lớp.");
+                }
             }
         }
 
-        // Gọi lại doGet để load lại trang và danh sách lịch sử
         doGet(request, response);
     }
 

@@ -28,6 +28,7 @@
         <div style="border: 2px solid #bf9000; padding: 20px; width: 60%; margin-bottom: 30px; background-color: #fff2cc;">
             <h3 style="color: #bf9000; margin-top: 0;">Tạo tài khoản Nội bộ mới</h3>
             <form action="AccountManage" method="POST">
+                <input type="hidden" name="action" value="add">
                 <table style="width: 100%;">
                     <tr>
                         <td style="width: 30%;"><strong>Loại Tài Khoản (Role):</strong></td>
@@ -77,10 +78,9 @@
                 <th>Username</th>
                 <th>Họ và Tên</th>
                 <th>Email</th>
-                <th>Số Điện Thoại</th>
                 <th>Trạng Thái</th>
-            </tr>
-            <c:forEach items="${accountList}" var="a">
+                <th style="text-align: center;">Thao tác</th> </tr>
+                    <c:forEach items="${accountList}" var="a">
                 <tr>
                     <td>${a.userID}</td>
                     <td style="font-weight: bold;">
@@ -92,12 +92,37 @@
                     <td>${a.username}</td>
                     <td><strong>${a.fullName}</strong></td>
                     <td>${a.email}</td>
-                    <td>${a.phone}</td>
                     <td style="font-weight: bold;">
                         <c:choose>
                             <c:when test="${a.status == 1}"><span style="color: green;">Active</span></c:when>
                             <c:otherwise><span style="color: red;">Inactive</span></c:otherwise>
                         </c:choose>
+                    </td>
+                    <td style="text-align: center;">
+                        <c:if test="${a.userID != sessionScope.LOGIN_USER.userID}">
+                            <c:choose>
+                                <c:when test="${a.status == 1}">
+                                    <form action="AccountManage" method="POST" style="margin: 0;">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="userId" value="${a.userID}">
+                                        <button type="submit" onclick="return confirm('Xác nhận KHÓA tài khoản này? Người này sẽ không thể đăng nhập được nữa!');" 
+                                                style="background-color: #cc0000; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px;">
+                                            Khóa TK
+                                        </button>
+                                    </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <form action="AccountManage" method="POST" style="margin: 0;">
+                                        <input type="hidden" name="action" value="activate">
+                                        <input type="hidden" name="userId" value="${a.userID}">
+                                        <button type="submit" onclick="return confirm('Xác nhận MỞ KHÓA cho tài khoản này hoạt động trở lại?');" 
+                                                style="background-color: #38761d; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px;">
+                                            Mở Khóa
+                                        </button>
+                                    </form>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:if>
                     </td>
                 </tr>
             </c:forEach>

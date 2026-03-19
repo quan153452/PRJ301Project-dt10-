@@ -16,7 +16,12 @@
     </head>
     <body>
         <h2>Khu vực Ban Giám Đốc (Quản Trị Viên)</h2>
-        <p>Xin chào Boss: <strong style="color: #cc0000;">${LOGIN_USER.fullName}</strong></p>
+        <p>Xin chào, 
+            <a href="Profile" style="text-decoration: none; color: #2986cc;">
+                <strong>${sessionScope.LOGIN_USER.fullName}</strong>
+            </a>
+            (Click vào tên để xem Hồ sơ)
+        </p>     
         <a href="Logout">Đăng xuất</a>
         <hr>
 

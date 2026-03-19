@@ -77,6 +77,7 @@
                 <th>Lớp Học</th>
                 <th>Thời Gian Xếp Lớp</th>
                 <th>Tình Trạng Học Phí</th>
+                <th style="text-align: center;">Hủy</th>
             </tr>
             <c:forEach items="${recentList}" var="r">
                 <tr>
@@ -94,6 +95,18 @@
                                 <span style="color: red; font-weight: bold;">Chưa nộp</span>
                             </c:otherwise>
                         </c:choose>
+                    </td>
+                    <td style="text-align: center;">
+                        <c:if test="${!r.paymentStatus}">
+                            <form action="${pageContext.request.contextPath}/Enroll" method="POST" style="margin: 0;">
+                                <input type="hidden" name="action" value="unenroll">
+                                <input type="hidden" name="enrollId" value="${r.enrollId}">
+                                <button type="submit" onclick="return confirm('Hủy xếp lớp người này?');" 
+                                        style="background-color: #cc0000; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px;">
+                                    Hủy
+                                </button>
+                            </form>
+                        </c:if>
                     </td>
                 </tr>
             </c:forEach>

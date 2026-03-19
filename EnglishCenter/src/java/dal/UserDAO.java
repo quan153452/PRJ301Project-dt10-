@@ -17,33 +17,58 @@ import java.util.logging.Logger;
 
 public class UserDAO extends DBContext {
 
-    public User checkLogin(String username, String password) {
-        // Truy vấn kiểm tra username, password và tài khoản phải đang Active (Status = 1)
-        String sql = "SELECT UserID, Username, FullName, RoleID FROM Users WHERE Username = ? AND Password = ? AND Status = 1";
-
+// Hàm xử lý Đăng nhập
+    public model.User checkLogin(String username, String password) {
+        // Cập nhật câu SQL: Lấy toàn bộ (*) hoặc liệt kê đủ các cột
+        String sql = "SELECT UserID, Username, Password, FullName, Email, Phone, Address, RoleID, Status "
+                + "FROM Users WHERE Username = ? AND Password = ? AND Status = 1";
         try {
-            // Sử dụng biến 'connection' được thừa kế từ DBContext
-            PreparedStatement ps = connection.prepareStatement(sql);
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, username);
             ps.setString(2, password);
-            ResultSet rs = ps.executeQuery();
+            java.sql.ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                // Trả về đối tượng User nếu tìm thấy
-                return new User(
-                        rs.getInt("UserID"),
-                        rs.getString("Username"),
-                        rs.getString("FullName"),
-                        rs.getInt("RoleID")
-                );
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
+                model.User u = new model.User();
+                // Lấy đủ mọi thông tin bỏ vào Object User
+                u.setUserID(rs.getInt("UserID"));
+                u.setUsername(rs.getString("Username"));
+                u.setPassword(rs.getString("Password"));
+                u.setFullName(rs.getString("FullName"));
+                u.setEmail(rs.getString("Email"));       // Bổ sung dòng này
+                u.setPhone(rs.getString("Phone"));       // Bổ sung dòng này
+                u.setAddress(rs.getString("Address"));   // Bổ sung dòng này
+                u.setRoleID(rs.getInt("RoleID"));
+                u.setStatus(rs.getInt("Status"));
 
-        return null; // Trả về null nếu sai thông tin hoặc có lỗi
+                return u; // Trả về đối tượng User "đầy đủ full-option"
+            }
+        } catch (java.sql.SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null; // Đăng nhập thất bại
     }
 
-    // Bạn có thể viết thêm các hàm khác ở đây, ví dụ lấy danh sách học sinh:
-    // public List<User> getAllStudents() { ... }
+// Hàm Đổi mật khẩu
+    public boolean changePassword(int userId, String oldPassword, String newPassword) {
+        // Vừa kiểm tra pass cũ có đúng không, vừa update pass mới nếu đúng
+        String checkSql = "SELECT UserID FROM Users WHERE UserID = ? AND Password = ?";
+        try {
+            java.sql.PreparedStatement psCheck = connection.prepareStatement(checkSql);
+            psCheck.setInt(1, userId);
+            psCheck.setString(2, oldPassword);
+            java.sql.ResultSet rs = psCheck.executeQuery();
+
+            if (rs.next()) { // Nếu pass cũ khớp
+                String updateSql = "UPDATE Users SET Password = ? WHERE UserID = ?";
+                java.sql.PreparedStatement psUpdate = connection.prepareStatement(updateSql);
+                psUpdate.setString(1, newPassword);
+                psUpdate.setInt(2, userId);
+                return psUpdate.executeUpdate() > 0;
+            }
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(UserDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return false;
+    }
 }

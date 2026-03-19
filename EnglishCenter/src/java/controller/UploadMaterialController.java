@@ -68,11 +68,11 @@ public class UploadMaterialController extends HttpServlet {
             return;
         }
 
-        // Lấy danh sách lớp của giáo viên để thả vào Dropdown (Select)
         TeacherDAO dao = new TeacherDAO();
-        List<EnrolledClass> classes = dao.getClassesByTeacher(loginUser.getUserID());
+        request.setAttribute("classes", dao.getClassesByTeacher(loginUser.getUserID()));
+        // BƯỚC MỚI: Truyền danh sách tài liệu đã upload
+        request.setAttribute("materialList", dao.getMaterialsByTeacher(loginUser.getUserID()));
 
-        request.setAttribute("classes", classes);
         request.getRequestDispatcher("/teacher/uploadMaterial.jsp").forward(request, response);
     }
 
@@ -88,21 +88,30 @@ public class UploadMaterialController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Nhận dữ liệu từ form
-        int classId = Integer.parseInt(request.getParameter("classId"));
-        String title = request.getParameter("title");
-        String fileUrl = request.getParameter("fileUrl");
-
+        request.setCharacterEncoding("UTF-8");
+        String action = request.getParameter("action");
         TeacherDAO dao = new TeacherDAO();
-        boolean success = dao.insertMaterial(classId, title, fileUrl);
 
-        if (success) {
-            request.setAttribute("msg", "Đăng tài liệu thành công!");
+        if ("delete".equals(action)) {
+            int materialId = Integer.parseInt(request.getParameter("materialId"));
+            if (dao.deleteMaterial(materialId)) {
+                request.setAttribute("msg", "Đã xóa tài liệu thành công!");
+            } else {
+                request.setAttribute("error", "Lỗi: Không thể xóa tài liệu.");
+            }
         } else {
-            request.setAttribute("msg", "Đã xảy ra lỗi khi đăng tài liệu.");
+            // Hành động ADD mặc định
+            int classId = Integer.parseInt(request.getParameter("classId"));
+            String title = request.getParameter("title");
+            String fileUrl = request.getParameter("fileUrl");
+
+            if (dao.insertMaterial(classId, title, fileUrl)) {
+                request.setAttribute("msg", "Đăng tài liệu thành công!");
+            } else {
+                request.setAttribute("error", "Đã xảy ra lỗi khi đăng tài liệu.");
+            }
         }
 
-        // Gọi lại doGet để load lại trang và danh sách lớp
         doGet(request, response);
     }
 

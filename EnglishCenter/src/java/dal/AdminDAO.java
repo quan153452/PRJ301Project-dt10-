@@ -150,4 +150,30 @@ public class AdminDAO extends DBContext {
         }
         return false;
     }
+
+// Xóa Khóa Học an toàn
+    public String deleteCourseSafe(int courseId) {
+        try {
+            // 1. Kiểm tra xem khóa học này đã có Lớp nào được mở chưa
+            String checkSql = "SELECT COUNT(*) AS Total FROM Classes WHERE CourseID = ?";
+            java.sql.PreparedStatement psCheck = connection.prepareStatement(checkSql);
+            psCheck.setInt(1, courseId);
+            java.sql.ResultSet rs = psCheck.executeQuery();
+            if (rs.next() && rs.getInt("Total") > 0) {
+                return "Không thể xóa! Khóa học này đang có lớp học hoạt động. Vui lòng cập nhật thay vì xóa.";
+            }
+
+            // 2. Nếu an toàn (Chưa có lớp nào), tiến hành xóa cứng
+            String deleteSql = "DELETE FROM Courses WHERE CourseID = ?";
+            java.sql.PreparedStatement psDelete = connection.prepareStatement(deleteSql);
+            psDelete.setInt(1, courseId);
+            psDelete.executeUpdate();
+
+            return null; // Không có lỗi
+
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(AdminDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            return "Lỗi CSDL khi thao tác!";
+        }
+    }
 }

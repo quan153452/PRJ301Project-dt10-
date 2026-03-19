@@ -18,8 +18,12 @@
             <p style="color: green; font-weight: bold;">${msg}</p>
         </c:if>
         <div>
-            <h2>Xin chào, ${LOGIN_USER.fullName}</h2>
-            <a href="Logout">Đăng xuất</a>
+            <p>Xin chào, 
+                <a href="Profile" style="text-decoration: none; color: #2986cc;">
+                    <strong>${sessionScope.LOGIN_USER.fullName}</strong>
+                </a>
+                (Click vào tên để xem Hồ sơ)
+            </p>             <a href="Logout">Đăng xuất</a>
         </div>
 
         <hr>

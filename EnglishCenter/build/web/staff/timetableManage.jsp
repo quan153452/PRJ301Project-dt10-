@@ -30,6 +30,7 @@
             <h3 style="color: #38761d; margin-top: 0;">Form Xếp Lịch Mới</h3>
 
             <form action="${pageContext.request.contextPath}/TimetableManage" method="POST">
+                <input type="hidden" name="action" value="add">
                 <table style="width: 100%;">
                     <tr>
                         <td style="width: 30%;"><strong>Chọn Lớp Học:</strong></td>
@@ -90,8 +91,8 @@
                 <th>Ngày Học</th>
                 <th>Ca Học</th>
                 <th>Chủ đề bài giảng</th>
-            </tr>
-            <c:forEach items="${recentSlots}" var="s">
+                <th style="text-align: center;">Thao tác</th> </tr>
+                    <c:forEach items="${recentSlots}" var="s">
                 <tr>
                     <td>#${s.slotId}</td>
                     <td style="color: #2986cc; font-weight: bold;">${s.className}</td>
@@ -99,6 +100,16 @@
                     <td><fmt:formatDate value="${s.slotDate}" pattern="dd/MM/yyyy"/></td>
                     <td>${s.slotTime}</td>
                     <td>${s.topic}</td>
+                    <td style="text-align: center;">
+                        <form action="${pageContext.request.contextPath}/TimetableManage" method="POST" style="margin: 0;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="slotId" value="${s.slotId}">
+                            <button type="submit" onclick="return confirm('Bạn có chắc chắn muốn XÓA buổi học này không? Mọi dữ liệu điểm danh của buổi này sẽ mất trắng!');" 
+                                    style="background-color: #cc0000; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px;">
+                                Xóa
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             </c:forEach>
         </table>

@@ -62,11 +62,14 @@ public class RegisterStudentController extends HttpServlet {
         HttpSession session = request.getSession();
         User loginUser = (User) session.getAttribute("LOGIN_USER");
         if (loginUser == null || (loginUser.getRoleID() != 2 && loginUser.getRoleID() != 1)) {
-            response.sendRedirect("login.jsp");
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
-        // Chỉ đơn giản là forward sang trang Form đăng ký
+        StaffDAO dao = new StaffDAO();
+        // Lấy danh sách học sinh đẩy sang JSP
+        request.setAttribute("studentList", dao.getStudentDetails());
+
         request.getRequestDispatcher("/staff/registerStudent.jsp").forward(request, response);
     }
 
@@ -82,34 +85,39 @@ public class RegisterStudentController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Cực kỳ quan trọng: Set UTF-8 để nhận tiếng Việt có dấu từ form
         request.setCharacterEncoding("UTF-8");
-
-        String username = request.getParameter("username");
-        String fullName = request.getParameter("fullName");
-        String email = request.getParameter("email");
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-
-        // Mặc định pass khởi tạo là 123 (hoặc bạn có thể cho nhân viên tự nhập)
-        String password = "123";
-
+        String action = request.getParameter("action");
         StaffDAO dao = new StaffDAO();
 
-        // 1. Kiểm tra trùng lặp
-        if (dao.checkUserExists(username, email)) {
-            request.setAttribute("error", "Thất bại: Tên đăng nhập (Username) hoặc Email này đã có người sử dụng!");
-        } else {
-            // 2. Insert vào DB
-            boolean success = dao.insertStudent(username, password, fullName, email, phone, address);
-            if (success) {
-                request.setAttribute("msg", "Tạo tài khoản học viên mới thành công! Mật khẩu mặc định là: 123");
+        // NẾU LÀ HÀNH ĐỘNG ĐUỔI HỌC (XÓA MỀM)
+        if ("delete".equals(action)) {
+            int userId = Integer.parseInt(request.getParameter("userId"));
+            if (dao.deactivateUser(userId)) {
+                request.setAttribute("msg", "Đã cho học viên nghỉ học/Thôi học thành công!");
             } else {
-                request.setAttribute("error", "Lỗi hệ thống: Không thể lưu vào Database.");
+                request.setAttribute("error", "Lỗi: Không thể thao tác.");
+            }
+        } // NẾU LÀ HÀNH ĐỘNG TẠO HỒ SƠ MỚI
+        else {
+            String username = request.getParameter("username");
+            String fullName = request.getParameter("fullName");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            String password = "123";
+
+            if (dao.checkUserExists(username, email)) {
+                request.setAttribute("error", "Thất bại: Tên đăng nhập hoặc Email này đã có người sử dụng!");
+            } else {
+                boolean success = dao.insertStudent(username, password, fullName, email, phone, address);
+                if (success) {
+                    request.setAttribute("msg", "Tạo tài khoản học viên mới thành công! Mật khẩu: 123");
+                } else {
+                    request.setAttribute("error", "Lỗi hệ thống: Không thể lưu vào Database.");
+                }
             }
         }
 
-        // Gọi lại doGet để hiển thị form cùng thông báo
         doGet(request, response);
     }
 
