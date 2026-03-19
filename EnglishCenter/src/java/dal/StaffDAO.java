@@ -514,4 +514,17 @@ public class StaffDAO extends DBContext {
         }
         return list;
     }
+
+    // Đóng lớp học (Cập nhật trạng thái thành Completed)
+    public boolean closeClass(int classId) {
+        String sql = "UPDATE Classes SET Status = 'Completed' WHERE ClassID = ?";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, classId);
+            return ps.executeUpdate() > 0;
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return false;
+    }
 }

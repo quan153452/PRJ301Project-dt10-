@@ -26,6 +26,7 @@
         <div style="border: 1px solid #38761d; padding: 20px; width: 60%; margin-bottom: 30px; background-color: #f9f9f9;">
             <h3 style="color: #38761d; margin-top: 0;">Tạo lớp học mới</h3>
             <form action="${pageContext.request.contextPath}/ClassManage" method="POST">
+                <input type="hidden" name="action" value="add">
                 <table style="width: 100%;">
                     <tr>
                         <td><strong>Tên Lớp (Mã lớp):</strong></td>
@@ -87,12 +88,12 @@
                 <th>ID</th>
                 <th>Tên Lớp</th>
                 <th>Thuộc Khóa Học</th>
-                <th>Giảng Viên Phụ Trách</th>
+                <th>Giảng Viên</th>
                 <th>Ngày Bắt Đầu</th>
                 <th>Ngày Kết Thúc</th>
                 <th>Trạng Thái</th>
-            </tr>
-            <c:forEach items="${classList}" var="c">
+                <th style="text-align: center;">Thao tác</th> </tr>
+                    <c:forEach items="${classList}" var="c">
                 <tr>
                     <td>${c.classId}</td>
                     <td><strong>${c.className}</strong></td>
@@ -100,14 +101,38 @@
                     <td style="color: #2986cc; font-weight: bold;">${c.teacherName}</td>
                     <td><fmt:formatDate value="${c.startDate}" pattern="dd/MM/yyyy"/></td>
                     <td><fmt:formatDate value="${c.endDate}" pattern="dd/MM/yyyy"/></td>
-                    <td>
-                        <span style="padding: 3px 8px; background-color: ${c.status == 'Ongoing' ? '#d9ead3' : '#fce5cd'}; border-radius: 3px;">
-                            ${c.status}
-                        </span>
+                    <td style="font-weight: bold;">
+                        <c:choose>
+                            <c:when test="${c.status == 'Ongoing'}">
+                                <span style="color: #f1c232;">Đang học</span>
+                            </c:when>
+                            <c:when test="${c.status == 'Upcoming'}">
+                                <span style="color: #2986cc;">Sắp mở</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span style="color: green;">Đã kết thúc</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td style="text-align: center;">
+                        <c:choose>
+                            <c:when test="${c.status != 'Completed'}">
+                                <form action="${pageContext.request.contextPath}/ClassManage" method="POST" style="margin: 0;">
+                                    <input type="hidden" name="action" value="close">
+                                    <input type="hidden" name="classId" value="${c.classId}">
+                                    <button type="submit" onclick="return confirm('Xác nhận KẾT THÚC lớp học này? Khóa học đã hoàn thành?');" 
+                                            style="background-color: #e69138; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px;">
+                                        Kết thúc lớp
+                                    </button>
+                                </form>
+                            </c:when>
+                            <c:otherwise>
+                                <span style="color: #999; font-style: italic; font-size: 14px;">Đã chốt</span>
+                            </c:otherwise>
+                        </c:choose>
                     </td>
                 </tr>
             </c:forEach>
         </table>
-
     </body>
 </html>

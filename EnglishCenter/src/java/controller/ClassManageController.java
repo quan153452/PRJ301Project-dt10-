@@ -89,22 +89,34 @@ public class ClassManageController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8"); // Xử lý tiếng Việt cho tên lớp
-
-        String className = request.getParameter("className");
-        int courseId = Integer.parseInt(request.getParameter("courseId"));
-        int teacherId = Integer.parseInt(request.getParameter("teacherId"));
-        Date startDate = Date.valueOf(request.getParameter("startDate"));
-        Date endDate = Date.valueOf(request.getParameter("endDate"));
-        String status = request.getParameter("status");
-
+        request.setCharacterEncoding("UTF-8");
+        String action = request.getParameter("action");
         StaffDAO dao = new StaffDAO();
-        boolean success = dao.insertClass(className, courseId, teacherId, startDate, endDate, status);
 
-        if (success) {
-            request.setAttribute("msg", "Tạo lớp học và phân công thành công!");
-        } else {
-            request.setAttribute("msg", "Lỗi: Không thể tạo lớp học!");
+        // NẾU LÀ HÀNH ĐỘNG ĐÓNG LỚP
+        if ("close".equals(action)) {
+            int classId = Integer.parseInt(request.getParameter("classId"));
+            if (dao.closeClass(classId)) {
+                request.setAttribute("msg", "Đã KẾT THÚC lớp học thành công!");
+            } else {
+                request.setAttribute("error", "Lỗi: Không thể đóng lớp học này.");
+            }
+        } // NẾU LÀ HÀNH ĐỘNG TẠO LỚP MỚI (Logic cũ của bạn)
+        else {
+            String className = request.getParameter("className");
+            int courseId = Integer.parseInt(request.getParameter("courseId"));
+            int teacherId = Integer.parseInt(request.getParameter("teacherId"));
+            java.sql.Date startDate = java.sql.Date.valueOf(request.getParameter("startDate"));
+            java.sql.Date endDate = java.sql.Date.valueOf(request.getParameter("endDate"));
+            String status = request.getParameter("status");
+
+            boolean success = dao.insertClass(className, courseId, teacherId, startDate, endDate, status);
+
+            if (success) {
+                request.setAttribute("msg", "Tạo lớp học và phân công thành công!");
+            } else {
+                request.setAttribute("error", "Lỗi: Không thể tạo lớp học!");
+            }
         }
 
         // Gọi lại doGet để load lại dữ liệu mới nhất
