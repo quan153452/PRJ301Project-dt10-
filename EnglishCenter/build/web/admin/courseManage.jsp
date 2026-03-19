@@ -85,7 +85,9 @@
                             <input type="text" name="duration" value="${co.duration}" style="width: 80%; padding: 4px;">
                         </td>
                         <td>
-                            <input type="number" name="price" value="${co.price}" min="0" step="1000" style="width: 80%; padding: 4px;">
+                            <input type="number" name="price" 
+                                   value="<fmt:formatNumber value='${co.price}' pattern='0' groupingUsed='false'/>" 
+                                   min="0" step="1000" style="width: 80%; padding: 4px;">
                         </td>
                         <td style="text-align: center;">
                             <button type="submit" name="action" value="update" style="background-color: #f1c232; color: black; border: 1px solid #bf9000; padding: 5px 10px; font-weight: bold; cursor: pointer; border-radius: 3px;">
