@@ -527,4 +527,31 @@ public class StaffDAO extends DBContext {
         }
         return false;
     }
+
+    // Lấy toàn bộ Feedback của Học viên
+    public java.util.List<model.FeedbackDetail> getAllFeedbacks() {
+        java.util.List<model.FeedbackDetail> list = new java.util.ArrayList<>();
+        // JOIN 3 bảng: Feedbacks, Users (Học sinh) và Classes
+        String sql = "SELECT f.FeedbackID, u.FullName AS StudentName, c.ClassName, f.Rating, f.Comment "
+                + "FROM Feedbacks f "
+                + "JOIN Users u ON f.StudentID = u.UserID "
+                + "JOIN Classes c ON f.ClassID = c.ClassID "
+                + "ORDER BY f.FeedbackID DESC";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            java.sql.ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new model.FeedbackDetail(
+                        rs.getInt("FeedbackID"),
+                        rs.getString("StudentName"),
+                        rs.getString("ClassName"),
+                        rs.getInt("Rating"), // Đổi tên cột cho khớp với DB của bạn nếu cần
+                        rs.getString("Comment")
+                ));
+            }
+        } catch (java.sql.SQLException ex) {
+            java.util.logging.Logger.getLogger(StaffDAO.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        return list;
+    }
 }
